@@ -89,6 +89,7 @@ int iDelay = pI2C->iDelay;
   return (ack == 0) ? 1:0; // a low ACK bit means success
 } /* i2cByteOut() */
 
+#ifdef FUTURE
 static int i2cByteOutFast(BBI2C *pI2C, uint8_t b)
 {
 uint8_t i, ack, iSDA, iSCL;
@@ -119,6 +120,8 @@ int iDelay;
   SDA_LOW(iSDA); // data low
   return (ack == 0) ? 1:0; // a low ACK bit means success
 } /* i2cByteOutFast() */
+#endif
+
 //
 // Receive a byte and read the ack bit
 // if we get a NACK (negative acknowledge) return 0
