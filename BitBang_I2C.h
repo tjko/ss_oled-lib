@@ -19,6 +19,9 @@
 //
 #ifndef __BITBANG_I2C__
 #define __BITBANG_I2C__
+
+#include "hardware/i2c.h"
+
 // supported devices
 enum {
   DEVICE_UNKNOWN = 0,
@@ -66,6 +69,7 @@ uint8_t iSDA, iSCL; // pin numbers (0xff = disabled)
 uint8_t bWire; // use the Wire library
 uint8_t iSDABit, iSCLBit; // bit numbers of the ports
 uint32_t iDelay;
+i2c_inst_t *i2c; // Hardware I2C block/instance
 } BBI2C;
 //
 // Read N bytes

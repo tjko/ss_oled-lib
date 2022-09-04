@@ -217,7 +217,8 @@ void I2CInit(BBI2C *pI2C, uint32_t iClock)
 
    if (pI2C->bWire) // use Wire library
    {
-      i2c_init(i2c0, iClock);
+      pI2C->i2c = (pI2C->bWire > 1 ? i2c1 : i2c0);
+      i2c_init(pI2C->i2c, iClock);
       gpio_set_function(pI2C->iSDA, GPIO_FUNC_I2C);
       gpio_set_function(pI2C->iSCL, GPIO_FUNC_I2C);
       gpio_pull_up(pI2C->iSDA);
@@ -260,7 +261,7 @@ uint8_t response = 0;
   {
      int ret;
      uint8_t rxdata;
-     ret = i2c_read_blocking(i2c0, addr, &rxdata, 1, false);
+     ret = i2c_read_blocking(pI2C->i2c, addr, &rxdata, 1, false);
      return (ret >= 0);
   }
   if (i2cBegin(pI2C, addr, 0)) // try to write to the given address
@@ -299,7 +300,7 @@ int I2CWrite(BBI2C *pI2C, uint8_t iAddr, uint8_t *pData, int iLen)
   
   if (pI2C->bWire)
   {
-    rc = i2c_write_blocking(i2c0, iAddr, pData, iLen, true); // true to keep master control of bus
+    rc = i2c_write_blocking(pI2C->i2c, iAddr, pData, iLen, true); // true to keep master control of bus
     return rc >= 0 ? iLen : 0;
   }
   rc = i2cBegin(pI2C, iAddr, 0);
@@ -319,9 +320,9 @@ int I2CReadRegister(BBI2C *pI2C, uint8_t iAddr, uint8_t u8Register, uint8_t *pDa
   
   if (pI2C->bWire) // use the wire library
   {
-      rc = i2c_write_blocking(i2c0, iAddr, &u8Register, 1, true); // true to keep master control of bus 
+      rc = i2c_write_blocking(pI2C->i2c, iAddr, &u8Register, 1, true); // true to keep master control of bus
       if (rc >= 0) {
-         rc = i2c_read_blocking(i2c0, iAddr, pData, iLen, false);
+         rc = i2c_read_blocking(pI2C->i2c, iAddr, pData, iLen, false);
       }
       return (rc >= 0);
   }
@@ -351,7 +352,7 @@ int I2CRead(BBI2C *pI2C, uint8_t iAddr, uint8_t *pData, int iLen)
   
     if (pI2C->bWire) // use the wire library
     {
-       rc = i2c_read_blocking(i2c0, iAddr, pData, iLen, false);
+       rc = i2c_read_blocking(pI2C->i2c, iAddr, pData, iLen, false);
        return (rc >= 0);
     }
   rc = i2cBegin(pI2C, iAddr, 1);
