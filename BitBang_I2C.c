@@ -220,7 +220,12 @@ void I2CInit(BBI2C *pI2C, uint32_t iClock)
 
    if (pI2C->bWire) // use Wire library
    {
+      pI2C->iDelay = 0;
       pI2C->i2c = (pI2C->bWire > 1 ? i2c1 : i2c0);
+      if (iClock == 0) {
+	      // if iClock == 0,  assume I2C bus already initialized...
+	      return;
+      }
       i2c_init(pI2C->i2c, iClock);
       gpio_set_function(pI2C->iSDA, GPIO_FUNC_I2C);
       gpio_set_function(pI2C->iSCL, GPIO_FUNC_I2C);
