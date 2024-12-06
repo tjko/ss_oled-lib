@@ -72,7 +72,7 @@ enum {
 // Otherwise use the Wire library.
 // If you don't need to use a separate reset pin, set it to -1
 //
-int oledInit(SSOLED *pOLED, int iType, int iAddr, int bFlip, int bInvert, int bWire, int iSDAPin, int iSCLPin, int iResetPin, int32_t iSpeed);
+int oledInit(SSOLED *pOLED, int iType, int iAddr, int bFlip, int bInvert, int bWire, int iSDAPin, int iSCLPin, int iResetPin, int32_t iSpeed, bool skip_i2c_init);
 //
 // Initialize an SPI version of the display
 //

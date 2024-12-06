@@ -25,6 +25,16 @@
 
 #include "BitBang_I2C.h"
 
+
+// timeouts in us (at 1000kHz)
+#define I2C_READ_BASE_TIMEOUT 10000
+#define I2C_WRITE_BASE_TIMEOUT 10000
+
+#define I2C_READ_TIMEOUT(x,speed) ((I2C_READ_BASE_TIMEOUT + (x * 250)) * (10000 / speed) / 10)
+#define I2C_WRITE_TIMEOUT(x,speed) ((I2C_WRITE_BASE_TIMEOUT + (x * 250)) * (10000 / speed) / 10)
+
+
+
 static uint8_t SDA_READ(uint8_t iSDA)
 {
     return gpio_get(iSDA);
@@ -214,7 +224,7 @@ static void i2cRead(BBI2C *pI2C, uint8_t *pData, int iLen)
 // Pass the pin numbers used for SDA and SCL
 // as well as the clock rate in Hz
 //
-void I2CInit(BBI2C *pI2C, uint32_t iClock)
+void I2CInit(BBI2C *pI2C, uint32_t iClock, bool skip_bus_init)
 {
    if (pI2C == NULL) return;
 
@@ -222,8 +232,9 @@ void I2CInit(BBI2C *pI2C, uint32_t iClock)
    {
       pI2C->iDelay = 0;
       pI2C->i2c = (pI2C->bWire > 1 ? i2c1 : i2c0);
-      if (iClock == 0) {
-	      // if iClock == 0,  assume I2C bus already initialized...
+      pI2C->iSpeed = (iClock / 1000 > 0 ? iClock / 1000 : 1);
+      if (skip_bus_init) {
+	      // I2C bus already initialized...
 	      return;
       }
       i2c_init(pI2C->i2c, iClock);
@@ -269,7 +280,7 @@ uint8_t response = 0;
   {
      int ret;
      uint8_t rxdata;
-     ret = i2c_read_blocking(pI2C->i2c, addr, &rxdata, 1, false);
+     ret = i2c_read_timeout_us(pI2C->i2c, addr, &rxdata, 1, false, I2C_READ_TIMEOUT(1, pI2C->iSpeed));
      return (ret >= 0);
   }
   if (i2cBegin(pI2C, addr, 0)) // try to write to the given address
@@ -308,7 +319,7 @@ int I2CWrite(BBI2C *pI2C, uint8_t iAddr, uint8_t *pData, int iLen)
   
   if (pI2C->bWire)
   {
-    rc = i2c_write_blocking(pI2C->i2c, iAddr, pData, iLen, true); // true to keep master control of bus
+    rc = i2c_write_timeout_us(pI2C->i2c, iAddr, pData, iLen, false, I2C_WRITE_TIMEOUT(iLen, pI2C->iSpeed));
     return rc >= 0 ? iLen : 0;
   }
   rc = i2cBegin(pI2C, iAddr, 0);
@@ -328,9 +339,9 @@ int I2CReadRegister(BBI2C *pI2C, uint8_t iAddr, uint8_t u8Register, uint8_t *pDa
   
   if (pI2C->bWire) // use the wire library
   {
-      rc = i2c_write_blocking(pI2C->i2c, iAddr, &u8Register, 1, true); // true to keep master control of bus
+	  rc = i2c_write_timeout_us(pI2C->i2c, iAddr, &u8Register, 1, true, I2C_WRITE_TIMEOUT(1, pI2C->iSpeed)); // true to keep master control of bus
       if (rc >= 0) {
-         rc = i2c_read_blocking(pI2C->i2c, iAddr, pData, iLen, false);
+          rc = i2c_read_timeout_us(pI2C->i2c, iAddr, pData, iLen, false, I2C_READ_TIMEOUT(iLen, pI2C->iSpeed));
       }
       return (rc >= 0);
   }
@@ -360,7 +371,7 @@ int I2CRead(BBI2C *pI2C, uint8_t iAddr, uint8_t *pData, int iLen)
   
     if (pI2C->bWire) // use the wire library
     {
-       rc = i2c_read_blocking(pI2C->i2c, iAddr, pData, iLen, false);
+       rc = i2c_read_timeout_us(pI2C->i2c, iAddr, pData, iLen, false, I2C_READ_TIMEOUT(iLen, pI2C->iSpeed));
        return (rc >= 0);
     }
   rc = i2cBegin(pI2C, iAddr, 1);

@@ -708,7 +708,7 @@ int iLen;
 //
 // Initializes the OLED controller into "page mode"
 //
-int oledInit(SSOLED *pOLED, int iType, int iAddr, int bFlip, int bInvert, int bWire, int sda, int scl, int reset, int32_t iSpeed)
+int oledInit(SSOLED *pOLED, int iType, int iAddr, int bFlip, int bInvert, int bWire, int sda, int scl, int reset, int32_t iSpeed, bool skip_i2c_init)
 {
 unsigned char uc[4];
 int rc = OLED_NOT_FOUND;
@@ -727,7 +727,7 @@ int rc = OLED_NOT_FOUND;
 // Disable SPI mode code
   iCSPin = iDCPin = -1;
 
-  I2CInit(&pOLED->bbi2c, iSpeed); // on Linux, SDA = bus number, SCL = device address
+  I2CInit(&pOLED->bbi2c, iSpeed, skip_i2c_init); // on Linux, SDA = bus number, SCL = device address
   
   // Reset it
 #ifdef FUTURE

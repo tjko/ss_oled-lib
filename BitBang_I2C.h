@@ -69,6 +69,7 @@ uint8_t iSDA, iSCL; // pin numbers (0xff = disabled)
 uint8_t bWire; // use the Wire library
 uint8_t iSDABit, iSCLBit; // bit numbers of the ports
 uint32_t iDelay;
+uint32_t iSpeed; // kHz
 i2c_inst_t *i2c; // Hardware I2C block/instance
 } BBI2C;
 //
@@ -102,7 +103,7 @@ void I2CScan(BBI2C *pI2C, uint8_t *pMap);
 // Pass the pin numbers used for SDA and SCL
 // as well as the clock rate in Hz
 //
-void I2CInit(BBI2C *pI2C, uint32_t iClock);
+void I2CInit(BBI2C *pI2C, uint32_t iClock, bool skip_bus_init);
 //
 // Figure out what device is at that address
 // returns the enumerated value
